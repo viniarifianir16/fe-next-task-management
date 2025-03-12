@@ -15,6 +15,7 @@ export const getEmployees = async () => {
             cache: "no-store",
             method: "GET",
             headers: {
+                "Content-Type": "application/json",
                 "Accept": "application/json",
             },
         });

@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getEmployees, deleteEmployee } from "../components/api/employees";
+import { getEmployees, deleteEmployee } from "@/app/components/api/employees";
 import Link from "next/link";
-import $ from "jquery";
-import "datatables.net-bs5";
-import "datatables.net";
+import DataTable from "react-data-table-component";
 
 interface Employees {
   id: number;
@@ -14,26 +12,17 @@ interface Employees {
 }
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState([]);
-
-  useEffect(() => {
-    if (employees.length > 0) {
-      if ($.fn.DataTable.isDataTable("#myTable")) {
-        $("#myTable").DataTable().destroy();
-      }
-
-      $("#myTable").DataTable();
-    }
-  }, [employees]);
-
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
+  const [employees, setEmployees] = useState<Employees[]>([]);
+  const [search, setSearch] = useState<string>("");
 
   const fetchEmployees = async () => {
     const data = await getEmployees();
     setEmployees(data);
   };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
 
   const handleDelete = async (id: number) => {
     const res = await deleteEmployee(id);
@@ -42,6 +31,51 @@ export default function EmployeesPage() {
       await fetchEmployees();
     }
   };
+
+  const filteredEmployees = employees.filter(
+    (employee) =>
+      employee.name.toLowerCase().includes(search.toLowerCase()) ||
+      employee.position.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const columns = [
+    {
+      name: "No",
+      selector: (row: Employees) => employees.indexOf(row) + 1,
+      sortable: true,
+      width: "80px",
+    },
+    {
+      name: "Name",
+      selector: (row: Employees) => row.name,
+      sortable: true,
+    },
+    {
+      name: "Position",
+      selector: (row: Employees) => row.position,
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      width: "150px",
+      cell: (row: Employees) => (
+        <>
+          <Link
+            href={`/employees/form?id=${row.id}`}
+            className="btn btn-warning btn-sm me-2"
+          >
+            Edit
+          </Link>
+          <button
+            onClick={() => handleDelete(row.id)}
+            className="btn btn-danger btn-sm"
+          >
+            Delete
+          </button>
+        </>
+      ),
+    },
+  ];
 
   return (
     <div className="container-fluid">
@@ -56,39 +90,15 @@ export default function EmployeesPage() {
             </Link>
           </div>
 
-          <table id="myTable" className="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th>No</th>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((item: Employees, index) => (
-                <tr key={item.id}>
-                  <td>{index + 1}</td>
-                  <td>{item.name}</td>
-                  <td>{item.position}</td>
-                  <td>
-                    <Link
-                      href={`/employees/form?id=${item.id}`}
-                      className="btn btn-warning btn-sm me-2"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="btn btn-danger btn-sm"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <input
+            type="text"
+            placeholder="Search by name"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="form-control mb-3"
+          />
+
+          <DataTable columns={columns} data={filteredEmployees} pagination />
         </div>
       </div>
     </div>

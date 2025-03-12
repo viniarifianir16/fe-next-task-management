@@ -1,40 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTasks, deleteTask } from "../components/api/tasks";
+import { getTasks, deleteTask } from "@/app/components/api/tasks";
 import Link from "next/link";
-import $ from "jquery";
-import "datatables.net-bs5";
+import DataTable from "react-data-table-component";
 
 interface Tasks {
   id: number;
-  employee_id: string;
+  task_id: string;
   name: string;
   task_name: string;
   due_date: string;
 }
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState([]);
-
-  useEffect(() => {
-    if (tasks.length > 0) {
-      if ($.fn.DataTable.isDataTable("#myTable")) {
-        $("#myTable").DataTable().destroy();
-      }
-
-      $("#myTable").DataTable();
-    }
-  }, [tasks]);
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+  const [tasks, setTasks] = useState<Tasks[]>([]);
+  const [search, setSearch] = useState<string>("");
 
   const fetchTasks = async () => {
     const data = await getTasks();
     setTasks(data);
   };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   const handleDelete = async (id: number) => {
     const res = await deleteTask(id);
@@ -43,6 +33,59 @@ export default function TasksPage() {
       await fetchTasks();
     }
   };
+
+  const filteredTasks = tasks.filter(
+    (task) =>
+      task.name.toLowerCase().includes(search.toLowerCase()) ||
+      task.task_name.toLowerCase().includes(search.toLowerCase()) ||
+      task.due_date.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const columns = [
+    {
+      name: "No",
+      selector: (row: Tasks) => tasks.indexOf(row) + 1,
+      sortable: true,
+      width: "80px",
+    },
+    {
+      name: "Name",
+      selector: (row: Tasks) => row.name,
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "Task",
+      selector: (row: Tasks) => row.task_name,
+      sortable: true,
+    },
+    {
+      name: "Due Date",
+      width: "150px",
+      selector: (row: Tasks) => row.due_date,
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      width: "150px",
+      cell: (row: Tasks) => (
+        <>
+          <Link
+            href={`/tasks/form?id=${row.id}`}
+            className="btn btn-warning btn-sm me-2"
+          >
+            Edit
+          </Link>
+          <button
+            onClick={() => handleDelete(row.id)}
+            className="btn btn-danger btn-sm"
+          >
+            Delete
+          </button>
+        </>
+      ),
+    },
+  ];
 
   return (
     <div className="container-fluid">
@@ -57,47 +100,15 @@ export default function TasksPage() {
             </Link>
           </div>
 
-          <table id="myTable" className="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th>No</th>
-                <th>Name</th>
-                <th>Task</th>
-                <th>Due Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.length > 0 ? (
-                tasks.map((item: Tasks, index) => (
-                  <tr key={item.id}>
-                    <td>{index + 1}</td>
-                    <td>{item.name}</td>
-                    <td>{item.task_name}</td>
-                    <td>{item.due_date}</td>
-                    <td>
-                      <Link
-                        href={`/tasks/form?id=${item.id}`}
-                        className="btn btn-warning btn-sm me-2"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="btn btn-danger btn-sm"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5}>No data found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <input
+            type="text"
+            placeholder="Search by name"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="form-control mb-3"
+          />
+
+          <DataTable columns={columns} data={filteredTasks} pagination />
         </div>
       </div>
     </div>

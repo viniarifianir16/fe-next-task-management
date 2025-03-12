@@ -111,13 +111,14 @@ export const deleteTask = async (id: number) => {
                 throw new Error("Failed to delete task");
             }
             Swal.fire('Deleted!', 'Data has been deleted.', 'success');
-            return res.json();
+            return { ok: true };
         } catch (error) {
             Swal.fire(
                 "Error",
                 error instanceof Error ? error.message : "An error occurred.",
                 "error"
             );
+            return { ok: false };
         }
     }
 };
