@@ -15,12 +15,6 @@ export default function EmployeeForm() {
 
   const [formData, setFormData] = useState({ name: "", position: "" });
 
-  useEffect(() => {
-    if (id) {
-      fetchEmployeeData();
-    }
-  }, [id]);
-
   const fetchEmployeeData = async () => {
     const employees = await getEmployees();
     const employee = employees.find(
@@ -29,6 +23,12 @@ export default function EmployeeForm() {
     if (employee)
       setFormData({ name: employee.name, position: employee.position });
   };
+
+  useEffect(() => {
+    if (id) {
+      fetchEmployeeData();
+    }
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

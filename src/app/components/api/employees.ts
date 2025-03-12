@@ -21,12 +21,10 @@ export const getEmployees = async () => {
         });
         if (!res.ok) {
             const text = await res.text();
-            console.error("Response Error:", text);
             throw new Error(`HTTP Error! Status: ${res.status} - ${text}`);
         }
 
         const data = await res.json();
-        // console.log("Data dari API:", data);
 
         if (!Array.isArray(data.data)) {
             console.error("Invalid response format:", data);

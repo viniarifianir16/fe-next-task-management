@@ -1,4 +1,29 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getEmployees } from "@/app/components/api/employees";
+import { getTasks } from "@/app/components/api/tasks";
+
 export default function Home() {
+  const [employeeCount, setEmployeeCount] = useState(0);
+  const [taskCount, setTaskCount] = useState(0);
+
+  useEffect(() => {
+    fetchCounts();
+  }, []);
+
+  const fetchCounts = async () => {
+    try {
+      const employees = await getEmployees();
+      const tasks = await getTasks();
+
+      setEmployeeCount(employees.length);
+      setTaskCount(tasks.length);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   return (
     <div className="container-fluid">
       <h2>Dashboard</h2>
@@ -7,7 +32,7 @@ export default function Home() {
           <div className="card">
             <div className="card-body">
               <h5 className="card-title">Data Employee</h5>
-              <p className="card-text">100 Users</p>
+              <p className="card-text">{employeeCount} Employees</p>
             </div>
           </div>
         </div>
@@ -15,7 +40,7 @@ export default function Home() {
           <div className="card">
             <div className="card-body">
               <h5 className="card-title">Data Tasks</h5>
-              <p className="card-text">25 Orders</p>
+              <p className="card-text">{taskCount} Tasks</p>
             </div>
           </div>
         </div>

@@ -17,16 +17,6 @@ export default function TaskForm() {
     due_date: "",
   });
 
-  useEffect(() => {
-    if (id) {
-      fetchTaskData();
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchEmployeeData();
-  }, []);
-
   const fetchTaskData = async () => {
     try {
       const tasks = await getTasks();
@@ -43,6 +33,12 @@ export default function TaskForm() {
     }
   };
 
+  useEffect(() => {
+    if (id) {
+      fetchTaskData();
+    }
+  }, [id]);
+
   const fetchEmployeeData = async () => {
     try {
       const data = await getEmployees();
@@ -51,6 +47,10 @@ export default function TaskForm() {
       console.error("Error fetching employees:", error);
     }
   };
+
+  useEffect(() => {
+    fetchEmployeeData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

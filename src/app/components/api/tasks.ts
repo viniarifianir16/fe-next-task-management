@@ -21,7 +21,6 @@ export const getTasks = async () => {
         });
         if (!res.ok) {
             const text = await res.text();
-            console.error("Response Error:", text);
             throw new Error(`HTTP Error! Status: ${res.status} - ${text}`);
         }
 
