@@ -1,37 +1,28 @@
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-
 interface Employees {
+    id: number;
     name: string;
     position: string;
 }
 
 // GET
-export const getEmployees = async () => {
+export const getEmployees = async (): Promise<Employees[]> => {
     try {
-        const res = await fetch(`${API_URL}/employees`, {
-            cache: "no-store",
-            method: "GET",
+        const response = await axios.get(`${API_URL}/employees`, {
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json",
             },
         });
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`HTTP Error! Status: ${res.status} - ${text}`);
+
+        if (response.status !== 200 || response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to fetch employees");
         }
 
-        const data = await res.json();
-
-        if (!Array.isArray(data.data)) {
-            console.error("Invalid response format:", data);
-            return [];
-        }
-
-        return data.data;
+        return response.data.data;
     } catch (error) {
         Swal.fire(
             "Error",
@@ -45,44 +36,42 @@ export const getEmployees = async () => {
 // POST
 export const addEmployee = async (employee: Employees) => {
     try {
-        const res = await fetch(`${API_URL}/employees`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Accept": "application/json" },
-            body: JSON.stringify(employee),
-        });
-        if (!res.ok) {
-            throw new Error("Failed to create employee");
+        const response = await axios.post(`${API_URL}/employees`, employee);
+
+        if (response.status !== 201 || response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to create employee");
         }
-        Swal.fire('Success!', 'Data created successfully', 'success');
-        return res.json();
+
+        Swal.fire("Success!", "Employee created successfully", "success");
+        return response.data.data;
     } catch (error) {
         Swal.fire(
             "Error",
             error instanceof Error ? error.message : "An error occurred.",
             "error"
         );
+        throw error;
     }
 };
 
 // PUT
 export const updateEmployee = async (id: number, employee: Employees) => {
     try {
-        const res = await fetch(`${API_URL}/employees/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json", "Accept": "application/json", },
-            body: JSON.stringify(employee),
-        });
-        if (!res.ok) {
-            throw new Error("Failed to updated employee");
+        const response = await axios.put(`${API_URL}/employees/${id}`, employee);
+
+        if (response.status !== 200 || response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to update employee");
         }
-        Swal.fire('Success!', 'Data updated successfully', 'success');
-        return res.json();
+
+        Swal.fire("Success!", "Employee updated successfully", "success");
+        return response.data.data;
     } catch (error) {
         Swal.fire(
             "Error",
             error instanceof Error ? error.message : "An error occurred.",
             "error"
         );
+        throw error;
     }
 };
 
@@ -100,19 +89,20 @@ export const deleteEmployee = async (id: number) => {
 
     if (result.isConfirmed) {
         try {
-            const res = await fetch(`${API_URL}/employees/${id}`, { method: "DELETE" });
-            if (!res.ok) {
-                throw new Error("Failed to delete employee");
+            const response = await axios.delete(`${API_URL}/employees/${id}`);
+            if (response.status !== 200 || response.data.status !== "success") {
+                throw new Error(response.data.message || "Failed to delete employee");
             }
-            Swal.fire('Deleted!', 'Data has been deleted.', 'success');
-            return { ok: true };
+
+            Swal.fire("Success!", "Employee deleted successfully", "success");
+            return true;
         } catch (error) {
             Swal.fire(
                 "Error",
                 error instanceof Error ? error.message : "An error occurred.",
                 "error"
             );
-            return { ok: false };
+            return false;
         }
     }
 };

@@ -5,38 +5,36 @@ import { getTasks, deleteTask } from "@/app/components/api/tasks";
 import Link from "next/link";
 import DataTable from "react-data-table-component";
 
+interface Employees {
+  id: number;
+  name: string;
+}
+
 interface Tasks {
   id: number;
-  task_id: string;
-  name: string;
   task_name: string;
   due_date: string;
+  employee?: Employees;
 }
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Tasks[]>([]);
   const [search, setSearch] = useState<string>("");
 
-  const fetchTasks = async () => {
-    const data = await getTasks();
-    setTasks(data);
-  };
-
   useEffect(() => {
-    fetchTasks();
+    getTasks().then(setTasks);
   }, []);
 
   const handleDelete = async (id: number) => {
-    const res = await deleteTask(id);
-    if (res?.ok) {
-      console.log("Penghapusan berhasil, mengambil data ulang...");
-      await fetchTasks();
-    }
+    const isDeleted = await deleteTask(id);
+    if (isDeleted) setTasks(tasks.filter((emp) => emp.id !== id));
   };
 
-  const filteredTasks = tasks.filter(
+  const filteredTasks = (tasks || []).filter(
     (task) =>
-      task.name.toLowerCase().includes(search.toLowerCase()) ||
+      (task.employee?.name || "")
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
       task.task_name.toLowerCase().includes(search.toLowerCase()) ||
       task.due_date.toLowerCase().includes(search.toLowerCase())
   );
@@ -50,7 +48,7 @@ export default function TasksPage() {
     },
     {
       name: "Name",
-      selector: (row: Tasks) => row.name,
+      selector: (row: Tasks) => row.employee?.name || "N/A",
       sortable: true,
       width: "150px",
     },
@@ -72,13 +70,13 @@ export default function TasksPage() {
         <>
           <Link
             href={`/tasks/form?id=${row.id}`}
-            className="btn btn-warning btn-sm me-2"
+            className="btn btn-warning btn-sm me-2 text-white"
           >
             Edit
           </Link>
           <button
             onClick={() => handleDelete(row.id)}
-            className="btn btn-danger btn-sm"
+            className="btn btn-danger btn-sm text-white"
           >
             Delete
           </button>
@@ -102,7 +100,7 @@ export default function TasksPage() {
 
           <input
             type="text"
-            placeholder="Search by name"
+            placeholder="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="form-control mb-3"

@@ -15,21 +15,13 @@ export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employees[]>([]);
   const [search, setSearch] = useState<string>("");
 
-  const fetchEmployees = async () => {
-    const data = await getEmployees();
-    setEmployees(data);
-  };
-
   useEffect(() => {
-    fetchEmployees();
+    getEmployees().then(setEmployees);
   }, []);
 
   const handleDelete = async (id: number) => {
-    const res = await deleteEmployee(id);
-    if (res?.ok) {
-      console.log("Penghapusan berhasil, mengambil data ulang...");
-      await fetchEmployees();
-    }
+    const isDeleted = await deleteEmployee(id);
+    if (isDeleted) setEmployees(employees.filter((emp) => emp.id !== id));
   };
 
   const filteredEmployees = employees.filter(
@@ -62,13 +54,13 @@ export default function EmployeesPage() {
         <>
           <Link
             href={`/employees/form?id=${row.id}`}
-            className="btn btn-warning btn-sm me-2"
+            className="btn btn-warning btn-sm me-2 text-white"
           >
             Edit
           </Link>
           <button
             onClick={() => handleDelete(row.id)}
-            className="btn btn-danger btn-sm"
+            className="btn btn-danger btn-sm text-white"
           >
             Delete
           </button>
@@ -92,7 +84,7 @@ export default function EmployeesPage() {
 
           <input
             type="text"
-            placeholder="Search by name"
+            placeholder="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="form-control mb-3"

@@ -31,7 +31,7 @@ export default function Home() {
         <div className="col-md-6 mb-3">
           <div className="card">
             <div className="card-body">
-              <h5 className="card-title">Data Employee</h5>
+              <h5 className="card-title">Data Employees</h5>
               <p className="card-text">{employeeCount} Employees</p>
             </div>
           </div>

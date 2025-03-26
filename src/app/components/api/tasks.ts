@@ -1,93 +1,109 @@
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface Employees {
+    id: number;
+    name: string;
+}
 
 interface Tasks {
     id: number;
     employee_id: number;
     task_name: string;
     due_date: string;
+    employee?: Employees;
 }
 
-// GET
-export const getTasks = async () => {
+// GET TASKS
+export const getTasks = async (): Promise<Tasks[]> => {
     try {
-        const res = await fetch(`${API_URL}/tasks`, {
-            cache: "no-store",
-            method: "GET",
+        const response = await axios.get(`${API_URL}/tasks`, {
             headers: {
                 "Accept": "application/json",
             },
         });
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`HTTP Error! Status: ${res.status} - ${text}`);
+
+        if (response.status !== 200 || response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to fetch tasks");
         }
 
-        const data = await res.json();
-
-        if (!Array.isArray(data.data)) {
-            console.error("Invalid response format:", data);
-            return [];
-        }
-
-        return data.data;
-    } catch (error) {
-        Swal.fire(
-            'Error',
-            (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to fetch data',
-            'error',
-        );
-    }
-};
-
-// GET EMPLOYEES
-export const getEmployees = async () => {
-    const res = await fetch(`${API_URL}/employees`);
-    return res.json();
-};
-
-// POST
-export const addTask = async (task: Tasks) => {
-    try {
-        const res = await fetch(`${API_URL}/tasks`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Accept": "application/json" },
-            body: JSON.stringify(task),
-        });
-        if (!res.ok) {
-            throw new Error("Failed to created task");
-        }
-        Swal.fire('Success!', 'Data created successfully', 'success');
-        return res.json();
+        return response.data.data.map((task: Tasks) => ({
+            ...task,
+            employee: task.employee ? { id: task.employee.id, name: task.employee.name } : undefined,
+        }));
     } catch (error) {
         Swal.fire(
             "Error",
             error instanceof Error ? error.message : "An error occurred.",
             "error"
         );
+        return [];
+    }
+};
+
+// GET EMPLOYEES
+export const getEmployees = async (): Promise<Employees[]> => {
+    try {
+        const response = await axios.get(`${API_URL}/employees`, {
+            headers: {
+                "Accept": "application/json",
+            },
+        });
+        if (response.status !== 200 || response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to fetch employees");
+        }
+
+        return response.data.data;
+    } catch (error) {
+        Swal.fire(
+            "Error",
+            error instanceof Error ? error.message : "An error occurred.",
+            "error"
+        );
+        return [];
+    }
+};
+
+// POST
+export const addTask = async (task: Tasks) => {
+    try {
+        const response = await axios.post(`${API_URL}/tasks`, task);
+        if (response.status !== 201 || response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to create task");
+        }
+
+        Swal.fire("Success!", "Task created successfully", "success");
+        return response.data.data;
+    } catch (error) {
+        Swal.fire(
+            "Error",
+            error instanceof Error ? error.message : "An error occurred.",
+            "error"
+        );
+        throw error;
     }
 };
 
 // PUT
 export const updateTask = async (id: number, task: Tasks) => {
     try {
-        const res = await fetch(`${API_URL}/tasks/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json", "Accept": "application/json", },
-            body: JSON.stringify(task),
-        });
-        if (!res.ok) {
-            throw new Error("Failed to updated task");
+        const response = await axios.put(`${API_URL}/tasks/${id}`, task);
+
+        if (response.status !== 200 || response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to update task");
         }
-        Swal.fire('Success!', 'Data updated successfully', 'success');
-        return res.json();
+
+        Swal.fire("Success!", "Task updated successfully", "success");
+        return response.data.data;
     } catch (error) {
         Swal.fire(
             "Error",
             error instanceof Error ? error.message : "An error occurred.",
             "error"
         );
+        throw error;
     }
 };
 
@@ -105,19 +121,20 @@ export const deleteTask = async (id: number) => {
 
     if (result.isConfirmed) {
         try {
-            const res = await fetch(`${API_URL}/tasks/${id}`, { method: "DELETE" });
-            if (!res.ok) {
-                throw new Error("Failed to delete task");
+            const response = await axios.delete(`${API_URL}/tasks/${id}`);
+            if (response.status !== 200 || response.data.status !== "success") {
+                throw new Error(response.data.message || "Failed to delete task");
             }
-            Swal.fire('Deleted!', 'Data has been deleted.', 'success');
-            return { ok: true };
+
+            Swal.fire("Success!", "Task deleted successfully", "success");
+            return true;
         } catch (error) {
             Swal.fire(
                 "Error",
                 error instanceof Error ? error.message : "An error occurred.",
                 "error"
             );
-            return { ok: false };
+            return false
         }
     }
 };
