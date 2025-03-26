@@ -5,12 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { addTask, updateTask, getTasks } from "@/app/components/api/tasks";
 import { getEmployees } from "@/app/components/api/employees";
 
+interface Employees {
+  id: number;
+  name: string;
+  position: string;
+}
+
 export default function TaskForm() {
   const router = useRouter();
-  const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState<Employees[]>([]);
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-
   const [formData, setFormData] = useState({
     employee_id: 0,
     task_name: "",
@@ -39,17 +44,8 @@ export default function TaskForm() {
     }
   }, [id]);
 
-  const fetchEmployeeData = async () => {
-    try {
-      const data = await getEmployees();
-      setEmployees(data);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchEmployeeData();
+    getEmployees().then(setEmployees);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

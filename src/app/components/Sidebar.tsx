@@ -34,7 +34,7 @@ export default function Sidebar({
       )}
       <div
         id="sidebar"
-        className={`fixed top-0 left-0 h-screen w-64 z-50 bg-gray-800 text-white transition-transform duration-300 ease-in-out 
+        className={`fixed top-0 left-0 h-full w-64 z-50 bg-gray-800 text-white transition-transform duration-300 ease-in-out 
           ${
             isOpen ? "translate-x-0" : "-translate-x-64"
           } md:relative md:translate-x-0 md:w-64 lg:w-72 xl:w-80`}

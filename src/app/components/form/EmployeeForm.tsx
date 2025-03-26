@@ -12,7 +12,6 @@ export default function EmployeeForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-
   const [formData, setFormData] = useState({ name: "", position: "" });
 
   const fetchEmployeeData = async () => {
@@ -33,9 +32,9 @@ export default function EmployeeForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (id) {
-      await updateEmployee(Number(id), formData);
+      await updateEmployee(Number(id), { ...formData, id: Number(id) });
     } else {
-      await addEmployee(formData);
+      await addEmployee({ ...formData, id: Number(id) });
     }
     router.push("/employees");
   };
